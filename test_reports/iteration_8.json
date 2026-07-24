@@ -1,0 +1,32 @@
+{
+  "summary": "Iteration 8 validated Draft/Publish for all 6 content types, Forgot Password flow (Resend placeholder → debug_reset_url), Reset token validation, single-use token + JWT invalidation, and Admin Dashboard auto-save + status toggle UI. Backend: 10/10 pytest tests passing. Frontend: forgot/reset flow, invalid-token page, StatusPill toggle, publish/unpublish, and auto-save (Saving… → Saved) all verified. DB restored: admin password back to Admin@123, no TEST_ items remain in any collection.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration8.py",
+    "/app/test_reports/pytest/iter8.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "useAutoSave: PUT sends full form incl. read-only fields (id, created_at, order). Backend currently tolerates this (returns 200) but consider stripping to writable subset before PUT to reduce network payload and prevent accidental override of server-managed fields.",
+    "SkillsTab.edit(): spreads the entire skill row into `form` (which then triggers first-render skip in useAutoSave). If user immediately edits, autosave fires with all extra keys. Fine today but brittle if schema tightens.",
+    "Public GET filtering relies on `is_admin_request` decoding JWT even for public GETs. Ensure this helper never raises on bad/expired tokens (verified in tests, but keep the try/except guard)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration8.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "admin@abhinandan.dev / Admin@123 (restored at end of run)",
+  "seed_data_creation": "None persisted. During testing: 1 draft skill 'TEST_Draft_Skill_UI' was created via UI and deleted via API; 1 'TEST_LEAK_CHECK' skill was created via curl and deleted. All parametrised backend tests create+delete their own items.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "1) Draft-visibility check from a second tab within the SAME Playwright browser context WILL show draft items because localStorage/JWT is shared and the shared axios client attaches Authorization. To verify true public visibility, either use a fresh incognito context, clear localStorage before goto('/'), or use raw HTTP (curl / requests without Authorization). The backend filter is correct — verified via curl. 2) Activity Log entries for Password Reset show 'email skipped (email_not_configured)' plus the full reset URL when RESEND_API_KEY starts with 're_xxxx' — this is expected. 3) On the very first admin session after login, if you try to edit-then-autosave a row that was JUST deleted, you'll see 'Auto-save failed' — a benign race, not a bug.",
+  "rca of the issue": "N/A — no bugs found. Two initial false-positives explained: (a) 'draft leaked to public' UI test — root cause: shared localStorage/JWT across new Playwright pages in the same browser context; verified via curl that unauth public GET correctly excludes drafts. (b) 'skill-autosave: Auto-save failed' on first attempt — occurred because the previously-edited skill row had just been deleted in the same run, so the PUT hit a stale id; reran in isolation and observed clean Saving… → Saved transitions with HTTP 200."
+}

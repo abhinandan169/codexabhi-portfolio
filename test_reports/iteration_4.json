@@ -1,0 +1,35 @@
+{
+  "summary": "Iteration 4 (portfolio homepage upgrade) fully verified. Backend: new public GET /api/analytics/live returns {views:int, online_now:int, last_updated:str} correctly and views are non-decreasing across profile fetches. PUT /api/admin/profile accepts and persists the additional 'github_username' field (dict-based endpoint, no schema change) and value is visible on GET /api/profile. All 11 core public endpoints (/api/, /api/profile, /api/skills, /api/projects, /api/social-links, /api/testimonials, /api/experience, /api/counters, /api/theme, /api/sections, /api/seo) return 200. 14/14 pytest tests pass. Frontend: Portfolio hero renders 'Hi, I'm Abhinandan Kumar' with .hero-gradient-text class, profile image, and all 5 CTA buttons (hire, projects, download, view, share). Navbar shows 1 active link with .nav-link-active underline animation and new nav-link-experience entry; clicking nav-link-projects scrolls (scrollY=2758). New sections all render: tech-stack-section (3 groups, 4 chips), coding-profiles-section (4 platform cards: github/leetcode/hackerrank/codeforces), journey-section (timeline with 4 events), github-activity-section (renders because a github social link exists, per spec 'set OR github social link exists' — expected). LiveInfo floating card present with live-online, live-visitors, live-views, live-updated, live-info-close all working; close button dismisses card. Mobile (400px viewport): hamburger visible, mobile menu opens with animate-fade-in class, navbar-mobile-hire present, LiveInfo hidden (md:block). Admin GitHub Username input (profile-github-username) renders and starts empty as required (kept empty at end).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Homepage sections", "issues": ["Counters and Testimonials wrappers do not have id anchors on their root elements — nav links use anchor scroll but these two are not scroll-targetable by id. Not blocking; they render fine. Counters uses data-testid='counter-*' and Testimonials uses testi-dot-*."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_new_portfolio_features.py",
+    "/app/test_reports/pytest/iter4.xml"
+  ],
+  "action_items": [
+    "(Optional) Add id='counters' and id='testimonials' wrapper on Counters/Testimonials root so any future navbar anchor links can scroll to them.",
+    "(Optional) GitHubActivity renders whenever a github social link exists; consider clarifying in docs that removing the github social link is the only way to fully hide it when github_username is empty."
+  ],
+  "critical_code_review_comments": [
+    "LiveInfo uses 15s polling — fine for MVP, but consider AbortController on unmount to cancel in-flight fetch and avoid setState-after-unmount warnings.",
+    "GitHubActivity relies on third-party SVG endpoints (ghchart.rshah.org, github-readme-stats). Network delays / cache-poisoning outages will silently show broken images. Consider onError fallback text.",
+    "Hero heading uses fixed-size classes; hero-gradient-text applied on the same element that also contains the typing element — verify SEO H1 semantics (currently single H1 which is good).",
+    "Portfolio.jsx now conditionally mounts many sections — consider extracting section-visibility logic into a single hook for consistency (mirrors admin Section Visibility feature)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_new_portfolio_features.py"
+  ],
+  "success_rate": {"backend": "100% (14/14 new tests)", "frontend": "100% of tested new-feature flows"},
+  "test_credentials": "admin@abhinandan.dev / Admin@123 (intact)",
+  "seed_data_creation": "github_username temporarily set to 'torvalds' in one backend test, then reverted to original empty value via finally block. Admin GitHub Username input confirmed empty in UI at end.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "New homepage sections in Portfolio.jsx: TechStack, CodingProfiles, GitHubActivity, Journey, plus LiveInfo floating card. Public endpoint /api/analytics/live is unauthenticated and safe to hit repeatedly. GitHubActivity renders if profile.github_username OR any social link with platform github. LiveInfo is hidden on mobile via md:block. Admin profile field testid: profile-github-username.",
+  "rca of the issue": "No issues found."
+}

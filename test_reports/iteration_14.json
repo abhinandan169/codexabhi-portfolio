@@ -1,0 +1,59 @@
+{
+  "summary": "Frontend-only retest of Admin Dashboard mobile responsiveness fixes for Skills, Activity Log, and Certificates tabs. All three tabs pass at 390x844 viewport with no page-level horizontal overflow; inner table/card wrappers scroll horizontally as designed. Desktop 1440x900 regression clean across 15 admin tabs.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "mobile_390": {
+      "skills": {
+        "page_overflow_ok": true,
+        "page_scrollWidth": 390,
+        "table_wrapper": {"overflowX": "auto", "scrollWidth": 560, "clientWidth": 356, "table_min_width": "560px"},
+        "rows_found": 3,
+        "skill_edit_in_viewport": true,
+        "skill_delete_in_viewport": true,
+        "edit_form_populated_with": ["SQL", "88", "Database"]
+      },
+      "activity": {
+        "page_overflow_ok": true,
+        "activity_list_present": true,
+        "rows_found": 30,
+        "table_wrapper": {"overflowX": "auto", "scrollWidth": 717, "clientWidth": 356, "table_min_width": "640px"},
+        "headers_readable": ["Action", "Details", "Date", "Time"]
+      },
+      "certificates": {
+        "page_overflow_ok": true,
+        "long_name_cert_created": "PROD_QA_Very_Long_Certificate_Name_To_Test_Wrapping_XYZ",
+        "card_rect": {"left": 16, "right": 374, "width": 358},
+        "badge_in_viewport": true,
+        "badge_rect": {"left": 297.75, "right": 357},
+        "badge_text": "Draft",
+        "edit_button_in_viewport": true,
+        "delete_button_in_viewport": true,
+        "cleanup_done": true
+      }
+    },
+    "desktop_1440": {
+      "skills": {"wrapper_has_horizontal_scroll": false, "scrollWidth_equals_clientWidth": true},
+      "activity": {"wrapper_has_horizontal_scroll": false, "scrollWidth_equals_clientWidth": true},
+      "certificates_grid": {"display": "grid", "columns": "3 x ~362px"},
+      "regression_tabs_no_errors": ["projects","education","experience","testimonials","media","backup","seo","appearance","visibility","github","liveinfo","messages"],
+      "console_errors_total": 0
+    }
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor: playwright element.click reports button as 'not visible' when the mobile sidebar is closed even though the topbar Menu button is visible — this was expected. JS click() bypassed it. Fine for the fix; not a bug."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend only)", "frontend": "100%"},
+  "test_credentials": "admin@abhinandan.dev / Admin@123 (from problem statement, worked)",
+  "seed_data_creation": "Temporary certificate 'PROD_QA_Very_Long_Certificate_Name_To_Test_Wrapping_XYZ' was created and deleted at end of run. Final cert count restored to 3.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All three mobile responsiveness fixes verified. Skills table min-w-[560px] wraps in overflow-x-auto correctly. Activity table min-w-[640px] wraps correctly with whitespace-nowrap on date/time; wrapper scrollWidth=717 while page stays within 390. Certificates card uses flex-wrap so Draft badge remains inside card (right=357 < 390). Desktop layout untouched. No further admin retest required for this scope."
+}

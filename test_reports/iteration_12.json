@@ -1,0 +1,20 @@
+{
+  "summary": "Iteration 12 narrow retest of the two MINOR bugs from iteration_11.json — both now RESOLVED. Backend: 6/6 pytest passed (test_iteration12_sitemap_seo.py). Verified: (1) /api/robots.txt healthy (User-agent + Allow/Disallow). (2) /api/seo returns production values (canonical_url=https://kumar-software-hub.preview.emergentagent.com, meta_description != 'TEST_desc', og_title != 'OG'). (3) /api/sitemap.xml baseline: Content-Type application/xml, well-formed <urlset> with <url><loc> entries, contains production URL, ZERO 'example.com'. (4) Sitemap fallback works when canonical_url is set to 'https://example.com' — sitemap uses PUBLIC_APP_URL env fallback. (5) Sitemap fallback works when canonical_url is empty string. (6) canonical_url restored to production URL at end of run. Frontend: portfolio '/' loaded in fresh browser context; document.title='Abhinandan Kumar — Software Engineer', meta description is real production copy ('Software Engineer specializing in Python, SQL, DSA…'), og:title='Abhinandan Kumar — Software Engineer', link[rel=canonical]='https://kumar-software-hub.preview.emergentagent.com/'. No TEST_desc/OG/example.com anywhere.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration12_sitemap_seo.py",
+    "/app/test_reports/pytest/iter12.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py sitemap_xml fallback logic is now correct: uses PUBLIC_APP_URL env when canonical_url is empty or contains 'example.com'. Consider also stripping trailing slashes and validating that PUBLIC_APP_URL itself is set — if both DB canonical and env are empty, base will be '' producing '<loc>/</loc>'."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration12_sitemap_seo.py (new)"],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% (SEO meta on / verified)"},
+  "test_credentials": "admin@abhinandan.dev / Admin@123",
+  "seed_data_creation": "Temporarily mutated seo.canonical_url to 'https://example.com' then '' during fallback tests, restored to 'https://kumar-software-hub.preview.emergentagent.com' in teardown test. DB is clean.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Only iteration_11 minor bugs were retested per instructions; full CRUD/autosave/focus rings/etc were NOT re-run. Both minor bugs are now resolved. Sitemap fallback logic verified for both empty-string and example.com placeholder cases."
+}

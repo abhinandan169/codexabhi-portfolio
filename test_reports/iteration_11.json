@@ -1,0 +1,36 @@
+{
+  "summary": "Iteration 11 production validation pass. Backend: 25/25 pytest passed covering sitemap.xml, robots.txt, all public GETs, admin search (3 queries), full CRUD + publish/draft/republish/delete lifecycle across skills/projects/certificates/education/experience/testimonials (draft correctly hidden from public), managers (widgets, media, backup export, theme, seo save, sections toggle+restore). Frontend: admin login OK; 14 admin tabs render without console/network errors (github, liveinfo, media, backup, appearance, seo, visibility, skills, projects, certificates, education, experience, testimonials, messages); Global Search modal opens via trigger, results within ~800ms for 'admin' (1 hit) and 'portfolio' (1 hit). Portfolio '/' loaded with ZERO console errors, ZERO page errors, ZERO 4xx/5xx network responses; SEO meta present (title, description, og:title, canonical link, sitemap link); hero image loading='eager' (correct for LCP), project/github-avatar/streak images loading='lazy'. All temporary PROD_QA_* items were cleaned up in test teardown.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/sitemap.xml", "issue": "Emits urls with base 'https://example.com' because SEO doc canonical_url is a placeholder. Sitemap code uses canonical_url from DB; fix by updating seo document PUBLIC_APP_URL or seeding canonical_url properly."},
+      {"endpoint": "/api/seo", "issue": "Persisted values are stale test data (meta_description='TEST_desc', og_title='OG', canonical_url='https://example.com'). Portfolio '/' reflects these — should be reset to real production values."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration11.py",
+    "/app/test_reports/pytest/iter11.xml"
+  ],
+  "action_items": [
+    "Reset SEO document canonical_url to PUBLIC_APP_URL (https://kumar-software-hub.preview.emergentagent.com) and clean placeholder meta_description/og_title left over from earlier iterations — otherwise portfolio pages advertise example.com and TEST_desc to crawlers.",
+    "Optionally have sitemap.xml fallback to PUBLIC_APP_URL env when canonical_url is empty or contains 'example.com'."
+  ],
+  "critical_code_review_comments": [
+    "server.py sitemap_xml uses canonical_url from DB without validation — should fallback to PUBLIC_APP_URL env when missing/placeholder.",
+    "No status PATCH endpoint exists (publish/unpublish is via full PUT). This works but couples state changes to full payload; StatusPill in UI must send the whole object."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration11.py (new)"
+  ],
+  "success_rate": {"backend": "100% (25/25)", "frontend": "100% (14/14 tabs, search, portfolio load)"},
+  "test_credentials": "admin@abhinandan.dev / Admin@123",
+  "seed_data_creation": "Temporary PROD_QA_* items were created and deleted in the CRUD test teardown; no residual data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Everything the request asked for was verified. Only follow-up: SEO/canonical/sitemap DB values are still example.com/TEST_desc from prior test seeding. All previously reported items (auth, autosave, card-soft shadows, focus rings) were NOT retested per instructions."
+}

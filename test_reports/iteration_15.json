@@ -1,0 +1,15 @@
+{
+  "summary": "Retested SocialTab mobile responsiveness fix. All 5 scenarios PASS: mobile page has no horizontal overflow (docScroll 390 == winWidth 390); inner wrapper has overflow-x:auto with wrapperClientW=356 < tableScrollW=520 so it scrolls internally; edit/delete buttons reachable via horizontal scroll of inner wrapper (before=false, after=true & within viewport); long-URL (300 char) row truncates cleanly (text-overflow:ellipsis, whiteSpace:nowrap, cellW=265, scrollW=2398, truncate class applied); mobile Add/Edit form fields + Save button all within viewport in both add and edit modes; desktop 1440x900 shows no inner scroll (wrapperClientW==wrapperScrollW==1118) and form uses md:grid-cols-3 (three ~348px columns); regression across skills/projects/education/experience/testimonials/certificates/activity/media/backup/seo/appearance/visibility/github/liveinfo/messages tabs = all ok with 0 console errors. Test data (PROD_QA_test links) cleaned up.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/test_reports/social_mobile.png", "/app/test_reports/social_desktop.png"],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "test_credentials": "admin@abhinandan.dev / Admin@123",
+  "seed_data_creation": "Temporarily created 1 PROD_QA_test social link with 300-char URL via POST /api/admin/social-links; cleaned up via DELETE after test (2 leftover copies from earlier failed script runs also cleaned via curl).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "SocialTab mobile responsive fix verified per iteration_15. Same pattern as SkillsTab/ActivityTab. Mobile viewport (390) required using [data-testid=admin-open-menu] to reveal sidebar before clicking admin-tab-* buttons (sidebar has 'hidden lg:block' + mobileOpen toggle)."
+}

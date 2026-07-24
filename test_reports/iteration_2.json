@@ -1,0 +1,57 @@
+{
+  "summary": "Tested all extended-feature backend endpoints (analytics, seo, robots, sitemap, sections, testimonials, experience, counters, project category/pinned/hidden + bulk-delete, global search, notifications, media library, login limiter) and frontend admin dashboard + portfolio. 15/16 new backend tests pass. All prior iteration_1 backend tests still pass. Portfolio home renders new sections (counters w/ 6 items, testimonials carousel, experience timeline). All 8 new admin tabs load without JS errors; Analytics shows 4 Recharts charts; SEO update reflected live; Ctrl+K global search opens and finds results. One real bug found: login rate limiter helper is defined but never invoked in POST /api/auth/login, so 5+ wrong attempts return 401 instead of 429. SEO meta_title and section visibility have been restored; admin creds intact (admin@abhinandan.dev / Admin@123).",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "POST /api/auth/login",
+        "issue": "Login rate limiter (LOGIN_ATTEMPTS + check_and_record_attempt) is defined at bottom of server.py but never called by the login endpoint. 5 consecutive wrong-password attempts still return 401 with no 429 lockout. Expected 429 Too Many Attempts after 5 failures / 5-minute window.",
+        "priority": "HIGH"
+      }
+    ],
+    "minor": [
+      {
+        "endpoint": "PUT /api/admin/seo",
+        "issue": "DEFAULT_SEO uses field name `keywords` while frontend/PUT payloads use `meta_keywords`; both are stored but coexisting field names could cause confusion. Similarly `site_title` vs `meta_title` are both present in defaults."
+      },
+      {
+        "endpoint": "GET /api/admin/media",
+        "issue": "list_media search uses field `filename` in $regex but stored records may only have `original_name` (depending on upload path). Rename endpoint expects body key `filename` (frontend matches this)."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_extended_features.py",
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results_iter2.xml"
+  ],
+  "action_items": [
+    "Wire the login rate-limiter into POST /api/auth/login: on invalid credentials call check_and_record_attempt(email, success=False) and raise HTTPException(429, 'Too Many Attempts') when it returns remaining==0; on successful password verify call check_and_record_attempt(email, success=True) to reset the counter."
+  ],
+  "critical_code_review_comments": [
+    "server.py is now 1305 lines — long overdue split into routers (auth, admin_content, admin_ops, public, analytics, media).",
+    "Login rate limiter code is dead — a common pattern regression; add a unit test that also asserts 429 to prevent future regressions.",
+    "In-memory LOGIN_ATTEMPTS won't survive worker restarts and is per-process only — acceptable for MVP but note for scale.",
+    "Analytics endpoint loads up to 50k events into memory each call and aggregates in Python; should use Mongo aggregation pipelines once dataset grows.",
+    "SEO model has duplicated fields (keywords vs meta_keywords, site_title vs meta_title) — pick one schema.",
+    "Portfolio public GET /api/profile still increments views on every hit (from iter1 review); analytics/track provides a cleaner path now — consider removing the double count.",
+    "add_notification has no dedup/rate-limit — a burst of contacts will spam the bell; consider batching or cooldown per kind."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_extended_features.py"
+  ],
+  "success_rate": {
+    "backend": "94% (15/16 new + 13/13 prior = 28/29 overall)",
+    "frontend": "100% of tested flows (no JS/console errors, all new tabs load, SEO update live-applied, global search works, all 3 portfolio sections render)"
+  },
+  "test_credentials": "admin@abhinandan.dev / Admin@123 (intact, verified)",
+  "seed_data_creation": "None persisted — tests use TEST_ prefix and clean up. SEO meta_title and all section visibility flags restored at end of run.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Two backend test files now: backend_test.py (iter1 – auth/theme/stats/activity/backup/account) and test_extended_features.py (iter2 – new features). Do NOT re-run test_password_change_flow / test_email_change_and_revert together with new-feature tests in same session unless you fully restore creds. Login limiter integration is pending. When testing frontend Analytics, note total_views counts /api/analytics/track events, not /api/profile hits (those go to the older `views` counter in stats). The `notif-badge` element only renders when unread>0 — its absence when count is 0 is expected. Category filter buttons on portfolio Projects section only appear when >1 distinct category exists in the project set.",
+  "rca of the issue": "Login limiter: helper function `check_and_record_attempt(email, success)` at server.py:1271 is defined but the login handler at server.py:456 short-circuits with `raise HTTPException(401, 'Invalid credentials')` without invoking the limiter, nor is it called on success. Fix: replace the current login body with a flow that calls the limiter before/after the pwd_context.verify branch and returns 429 when attempts >= MAX_ATTEMPTS."
+}
