@@ -391,23 +391,6 @@ async def seed_defaults():
         for s in samples:
             await db.testimonials.insert_one(Testimonial(**s).model_dump())
 
-    # Experience defaults
-    if await db.experience.count_documents({}) == 0:
-        samples = [
-            {"company": "Freelance Projects", "role": "Software Engineer",
-             "employment_type": "Freelance", "location": "Remote",
-             "start_date": "2023", "end_date": "", "currently_working": True,
-             "description": "Building web applications, APIs, and automation tools for early-stage founders and small teams.",
-             "technologies": ["Python", "React", "FastAPI", "MongoDB"], "company_logo": "", "order": 1, "featured": True},
-            {"company": "College Coding Club", "role": "Backend Lead",
-             "employment_type": "Volunteer", "location": "On-site",
-             "start_date": "2022", "end_date": "2024", "currently_working": False,
-             "description": "Led backend workshops, mentored juniors on DSA, and organized coding contests.",
-             "technologies": ["Python", "SQL", "DSA"], "company_logo": "", "order": 2, "featured": False},
-        ]
-        for s in samples:
-            await db.experience.insert_one(Experience(**s).model_dump())
-
 def clean(doc):
     if doc is None:
         return None
@@ -1535,7 +1518,7 @@ logger = logging.getLogger(__name__)
 @app.on_event("startup")
 async def startup():
     await seed_admin()
-    # await seed_defaults()
+    await seed_defaults()
     logger.info("Startup complete")
 
 @app.on_event("shutdown")
