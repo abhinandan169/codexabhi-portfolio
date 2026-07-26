@@ -1535,7 +1535,7 @@ logger = logging.getLogger(__name__)
 @app.on_event("startup")
 async def startup():
     await seed_admin()
-    await seed_defaults()
+    # await seed_defaults()
     logger.info("Startup complete")
 
 @app.on_event("shutdown")
