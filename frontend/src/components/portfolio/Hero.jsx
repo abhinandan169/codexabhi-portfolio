@@ -103,9 +103,9 @@ const Hero = ({ profile, resume, social }) => {
           </div>
 
           <div className="mt-12 flex flex-wrap items-center gap-x-10 gap-y-4 text-sm text-[#555555]" data-testid="hero-stats">
-            <div><span className="text-3xl font-extrabold text-[#111111] tracking-tight">3+</span><div className="text-[11px] uppercase tracking-[0.15em] mt-0.5">Years Coding</div></div>
+            <div><span className="text-3xl font-extrabold text-[#111111] tracking-tight">1+</span><div className="text-[11px] uppercase tracking-[0.15em] mt-0.5">Years Coding</div></div>
             <div className="w-px h-10 bg-[#E5E7EB]"></div>
-            <div><span className="text-3xl font-extrabold text-[#111111] tracking-tight">15+</span><div className="text-[11px] uppercase tracking-[0.15em] mt-0.5">Projects</div></div>
+            <div><span className="text-3xl font-extrabold text-[#111111] tracking-tight">5+</span><div className="text-[11px] uppercase tracking-[0.15em] mt-0.5">Projects</div></div>
             <div className="w-px h-10 bg-[#E5E7EB]"></div>
             <div><span className="text-3xl font-extrabold text-[#111111] tracking-tight">500+</span><div className="text-[11px] uppercase tracking-[0.15em] mt-0.5">DSA Problems</div></div>
           </div>

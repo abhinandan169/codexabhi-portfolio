@@ -26,3 +26,5 @@ openai==1.99.9
 resend==2.34.0
 
 stripe==14.4.1
+
+cloudinary
