@@ -3,6 +3,7 @@ import { Trash2, Copy, Grid3x3, List, Search, Loader2, UploadCloud, HardDrive } 
 import { api, mediaUrl } from '@/lib/api';
 import { toast } from 'sonner';
 import ConfirmDialog from './ConfirmDialog';
+import { optimisticDeletePaginated } from '@/lib/optimisticDelete';
 
 const bytes = (b) => {
   if (b < 1024) return `${b} B`;
@@ -39,12 +40,19 @@ const MediaTab = () => {
 
   const del = async () => {
     if (!confirm) return;
-    try {
-      await api.delete(`/admin/media/${confirm}`);
-      toast.success('Deleted');
-      setConfirm(null);
-      load();
-    } catch { toast.error('Delete failed'); }
+    const id = confirm; setConfirm(null);
+    const item = data.items.find((i) => i.id === id);
+    const shrink = item?.size || 0;
+    // Optimistic remove with local total_size + count update.
+    const snapshot = data;
+    setData({
+      ...data,
+      items: data.items.filter((i) => i.id !== id),
+      count: Math.max(0, (data.count || 0) - 1),
+      total_size: Math.max(0, (data.total_size || 0) - shrink),
+    });
+    try { await api.delete(`/admin/media/${id}`); toast.success('Deleted'); }
+    catch { setData(snapshot); toast.error('Delete failed'); }
   };
 
   const copyUrl = async (url) => {

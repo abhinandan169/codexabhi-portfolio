@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import ConfirmDialog from './ConfirmDialog';
 import { StatusPill, AutoSaveStatus } from './StatusPill';
 import { useAutoSave } from '@/lib/useAutoSave';
+import { optimisticDelete } from '@/lib/optimisticDelete';
 
 const empty = { name: '', level: 80, category: 'General', order: 0, status: 'published' };
 
@@ -48,12 +49,8 @@ const SkillsTab = () => {
   };
 
   const del = async () => {
-    try {
-      await api.delete(`/admin/skills/${confirm}`);
-      toast.success('Deleted');
-      setConfirm(null);
-      load();
-    } catch { toast.error('Delete failed'); }
+    const id = confirm; setConfirm(null);
+    await optimisticDelete({ id, url: `/admin/skills/${id}`, items, setItems });
   };
 
   const filtered = items.filter((i) => i.name.toLowerCase().includes(q.toLowerCase()));

@@ -6,6 +6,7 @@ import ConfirmDialog from './ConfirmDialog';
 import FileUpload from './FileUpload';
 import { StatusPill, AutoSaveStatus } from './StatusPill';
 import { useAutoSave } from '@/lib/useAutoSave';
+import { optimisticDelete } from '@/lib/optimisticDelete';
 
 const empty = { name: '', company: '', role: '', rating: 5, review: '', photo: '', linkedin: '', order: 0, featured: false, status: 'published' };
 
@@ -42,7 +43,7 @@ const TestimonialsTab = () => {
   };
   const edit = (t) => { setEditing(t.id); setForm({ ...empty, ...t }); };
   const cancel = () => { setEditing(null); setForm(empty); };
-  const del = async () => { await api.delete(`/admin/testimonials/${confirm}`); setConfirm(null); toast.success('Deleted'); load(); };
+  const del = async () => { const id = confirm; setConfirm(null); await optimisticDelete({ id, url: `/admin/testimonials/${id}`, items, setItems }); };
 
   return (
     <div className="space-y-6" data-testid="testimonials-tab">

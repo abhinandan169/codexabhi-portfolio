@@ -3,6 +3,7 @@ import { Plus, Save, Trash2, Edit3 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import ConfirmDialog from './ConfirmDialog';
+import { optimisticDelete } from '@/lib/optimisticDelete';
 
 const empty = { platform: '', url: '', order: 0 };
 
@@ -25,7 +26,8 @@ const SocialTab = () => {
     } catch { toast.error('Failed'); }
   };
   const edit = (s) => { setEditing(s.id); setForm({ ...empty, ...s }); };
-  const del = async () => { await api.delete(`/admin/social-links/${confirm}`); setConfirm(null); toast.success('Deleted'); load(); };
+
+  const del = async () => { const id = confirm; setConfirm(null); await optimisticDelete({ id, url: `/admin/social-links/${id}`, items, setItems }); };
 
   return (
     <div className="space-y-6" data-testid="social-tab">

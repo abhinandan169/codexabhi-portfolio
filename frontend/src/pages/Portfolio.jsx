@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import Navbar from '@/components/portfolio/Navbar';
 import Hero from '@/components/portfolio/Hero';
 import About from '@/components/portfolio/About';
@@ -13,16 +13,21 @@ import Resume from '@/components/portfolio/Resume';
 import HireMe from '@/components/portfolio/HireMe';
 import Contact from '@/components/portfolio/Contact';
 import Footer from '@/components/portfolio/Footer';
-import FloatingButtons from '@/components/portfolio/FloatingButtons';
-import CustomCursor from '@/components/portfolio/CustomCursor';
-import CodingProfiles from '@/components/portfolio/CodingProfiles';
-import GitHubActivity from '@/components/portfolio/GitHubActivity';
-import TechStack from '@/components/portfolio/TechStack';
-import Journey from '@/components/portfolio/Journey';
-import LiveInfo from '@/components/portfolio/LiveInfo';
+import SectionSkeleton from '@/components/portfolio/SectionSkeleton';
 import { api, mediaUrl } from '@/lib/api';
 import { trackView } from '@/lib/analytics';
 import { useTheme } from '@/lib/theme';
+
+// Lazy-load heavy / below-the-fold components so they don't block the
+// initial JS bundle. Each is code-split and fetched only after the main
+// UI has painted.
+const CodingProfiles = lazy(() => import('@/components/portfolio/CodingProfiles'));
+const GitHubActivity = lazy(() => import('@/components/portfolio/GitHubActivity'));
+const TechStack = lazy(() => import('@/components/portfolio/TechStack'));
+const Journey = lazy(() => import('@/components/portfolio/Journey'));
+const FloatingButtons = lazy(() => import('@/components/portfolio/FloatingButtons'));
+const CustomCursor = lazy(() => import('@/components/portfolio/CustomCursor'));
+const LiveInfo = lazy(() => import('@/components/portfolio/LiveInfo'));
 
 const setMeta = (name, content, isProperty = false) => {
   if (!content) return;
@@ -64,93 +69,96 @@ const applySeo = (seo) => {
 };
 
 const Portfolio = () => {
-  const { theme } = useTheme();
+  useTheme();
+  // Use `null` for lists that are still fetching, so sections can render
+  // a skeleton until real data lands (which may be an empty array).
   const [data, setData] = useState({
-    profile: null, skills: [], projects: [], certificates: [], education: [],
-    social: [], resume: null, testimonials: [], experience: [], counters: [],
-    sections: {}, seo: null,
+    profile: null, seo: null, sections: null,
+    skills: null, projects: null, certificates: null, education: null,
+    social: null, resume: null, testimonials: null, experience: null, counters: null,
   });
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const [profile, skills, projects, certificates, education, social, resume, testimonials, experience, counters, sections, seo] = await Promise.all([
-          api.get('/profile'),
-          api.get('/skills'),
-          api.get('/projects'),
-          api.get('/certificates'),
-          api.get('/education'),
-          api.get('/social-links'),
-          api.get('/resume'),
-          api.get('/testimonials'),
-          api.get('/experience'),
-          api.get('/counters'),
-          api.get('/sections'),
-          api.get('/seo'),
-        ]);
-        setData({
-          profile: profile.data,
-          skills: skills.data,
-          projects: projects.data,
-          certificates: certificates.data,
-          education: education.data,
-          social: social.data,
-          resume: resume.data,
-          testimonials: testimonials.data,
-          experience: experience.data,
-          counters: counters.data,
-          sections: sections.data || {},
-          seo: seo.data || {},
-        });
-        applySeo(seo.data);
-      } catch (e) {
-        console.error('load failed', e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-    trackView('/');
-  }, []);
+    let alive = true;
+    const set = (patch) => alive && setData((d) => ({ ...d, ...patch }));
 
-  if (loading && theme?.loader_enabled !== false) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg)' }} data-testid="portfolio-loading">
-        <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }}></div>
-      </div>
-    );
-  }
-  if (loading) return null;
+    // Stage 1 — critical for layout & first paint: profile + sections + seo.
+    // Fire and forget in parallel so anything that needs profile shows fast.
+    Promise.all([api.get('/profile'), api.get('/sections'), api.get('/seo')])
+      .then(([p, sec, s]) => {
+        set({ profile: p.data, sections: sec.data || {}, seo: s.data || {} });
+        applySeo(s.data);
+      })
+      .catch((e) => console.error('critical load failed', e));
+
+    // Stage 2 — non-blocking parallel fetches. Each writes its own slice as
+    // soon as it resolves, so sections progressively hydrate.
+    const fetchOne = (path, key, mapper = (r) => r.data) =>
+      api.get(path).then((r) => set({ [key]: mapper(r) })).catch(() => set({ [key]: [] }));
+
+    fetchOne('/skills', 'skills');
+    fetchOne('/projects', 'projects');
+    fetchOne('/certificates', 'certificates');
+    fetchOne('/education', 'education');
+    fetchOne('/social-links', 'social');
+    fetchOne('/testimonials', 'testimonials');
+    fetchOne('/experience', 'experience');
+    fetchOne('/counters', 'counters');
+    api.get('/resume').then((r) => set({ resume: r.data })).catch(() => set({ resume: null }));
+
+    trackView('/');
+    return () => { alive = false; };
+  }, []);
 
   const S = data.sections || {};
   const on = (key, def = true) => S[key] === undefined ? def : !!S[key];
+
+  // Helpers for progressive rendering: while a list is `null`, show skeleton.
+  const withSkeleton = (list, kind, node) => (list === null ? <SectionSkeleton kind={kind} /> : node);
 
   return (
     <div data-testid="portfolio-root">
       <Navbar profile={data.profile} />
       <main>
-        {on('hero') && <Hero profile={data.profile} resume={data.resume} social={data.social} />}
-        {on('about') && <About profile={data.profile} />}
-        {on('counters') && <Counters counters={data.counters} />}
-        {on('skills') && <Skills skills={data.skills} />}
-        {on('projects') && <Projects projects={data.projects} />}
-        <TechStack skills={data.skills} />
-        <CodingProfiles social={data.social} />
-        <GitHubActivity profile={{ ...data.profile, social: data.social }} />
-        {on('experience') && <Experience experience={data.experience} />}
-        <Journey experience={data.experience} education={data.education} />
-        {on('certificates') && <Certificates certificates={data.certificates} />}
-        {on('education') && <Education education={data.education} />}
-        {on('testimonials') && <Testimonials testimonials={data.testimonials} />}
+        {on('hero') && withSkeleton(
+          data.profile ? [] : null,
+          'hero',
+          <Hero profile={data.profile} resume={data.resume} social={data.social} />
+        )}
+        {on('about') && (data.profile ? <About profile={data.profile} /> : <SectionSkeleton kind="stack" />)}
+        {on('counters') && withSkeleton(data.counters, 'grid-4', <Counters counters={data.counters} />)}
+        {on('skills') && withSkeleton(data.skills, 'grid-4', <Skills skills={data.skills} />)}
+        {on('projects') && withSkeleton(data.projects, 'grid-3', <Projects projects={data.projects} />)}
+
+        <Suspense fallback={<SectionSkeleton kind="grid-4" />}>
+          {data.skills === null ? <SectionSkeleton kind="grid-4" /> : <TechStack skills={data.skills} />}
+        </Suspense>
+        <Suspense fallback={<SectionSkeleton kind="grid-3" />}>
+          {data.social === null ? <SectionSkeleton kind="grid-3" /> : <CodingProfiles social={data.social} />}
+        </Suspense>
+        <Suspense fallback={<SectionSkeleton kind="grid-3" />}>
+          {(!data.profile || data.social === null) ? <SectionSkeleton kind="grid-3" /> : <GitHubActivity profile={{ ...data.profile, social: data.social }} />}
+        </Suspense>
+
+        {on('experience') && withSkeleton(data.experience, 'timeline', <Experience experience={data.experience} />)}
+
+        <Suspense fallback={<SectionSkeleton kind="timeline" />}>
+          {(data.experience === null || data.education === null) ? <SectionSkeleton kind="timeline" /> : <Journey experience={data.experience} education={data.education} />}
+        </Suspense>
+
+        {on('certificates') && withSkeleton(data.certificates, 'grid-3', <Certificates certificates={data.certificates} />)}
+        {on('education') && withSkeleton(data.education, 'timeline', <Education education={data.education} />)}
+        {on('testimonials') && withSkeleton(data.testimonials, 'grid-3', <Testimonials testimonials={data.testimonials} />)}
         {on('resume') && <Resume resume={data.resume} />}
-        {on('hire_me') && <HireMe profile={data.profile} />}
-        {on('contact') && <Contact profile={data.profile} />}
+        {on('hire_me') && (data.profile ? <HireMe profile={data.profile} /> : <SectionSkeleton kind="hero" />)}
+        {on('contact') && (data.profile ? <Contact profile={data.profile} /> : <SectionSkeleton kind="stack" />)}
       </main>
-      {on('footer') && <Footer profile={data.profile} social={data.social} />}
-      <FloatingButtons social={data.social} />
-      <CustomCursor />
-      <LiveInfo />
+      {on('footer') && data.profile && <Footer profile={data.profile} social={data.social || []} />}
+
+      {/* Non-critical UI mounted after first paint via Suspense. */}
+      <Suspense fallback={null}>{data.social !== null && <FloatingButtons social={data.social} />}</Suspense>
+      <Suspense fallback={null}><CustomCursor /></Suspense>
+      <Suspense fallback={null}><LiveInfo /></Suspense>
     </div>
   );
 };

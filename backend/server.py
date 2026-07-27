@@ -18,19 +18,8 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 import aiofiles
 
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
-
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
-
-cloudinary.config(
-    cloud_name=os.environ["CLOUDINARY_CLOUD_NAME"],
-    api_key=os.environ["CLOUDINARY_API_KEY"],
-    api_secret=os.environ["CLOUDINARY_API_SECRET"],
-    secure=True
-)
 
 # MongoDB
 mongo_url = os.environ['MONGO_URL']
@@ -390,7 +379,7 @@ async def seed_defaults():
         ]
         for s in samples:
             await db.testimonials.insert_one(Testimonial(**s).model_dump())
-
+            
 def clean(doc):
     if doc is None:
         return None
@@ -920,28 +909,24 @@ async def restore_backup(body: RestoreRequest, _=Depends(verify_token)):
 # ------------------ File Upload ------------------
 @api_router.post("/admin/upload")
 async def upload_file(file: UploadFile = File(...), _=Depends(verify_token)):
-    content = await file.read()
-
-    result = cloudinary.uploader.upload(
-        content,
-        folder="codexabhi-portfolio",
-        resource_type="auto"
-    )
-
+    ext = Path(file.filename).suffix
+    fname = f"{uuid.uuid4().hex}{ext}"
+    fpath = UPLOAD_DIR / fname
+    async with aiofiles.open(fpath, 'wb') as f:
+        content = await file.read()
+        await f.write(content)
+    # Record in media library
     await db.media.insert_one({
         "id": str(uuid.uuid4()),
         "filename": file.filename,
-        "stored_name": result["public_id"],
-        "url": result["secure_url"],
+        "stored_name": fname,
+        "url": f"/api/uploads/{fname}",
         "size": len(content),
         "content_type": file.content_type or "",
         "created_at": now_iso(),
     })
-
-    return {
-        "url": result["secure_url"],
-        "filename": file.filename
-    }
+    # Return API-served URL (relative). Frontend will prefix REACT_APP_BACKEND_URL.
+    return {"url": f"/api/uploads/{fname}", "filename": file.filename}
 
 @api_router.get("/uploads/{fname}")
 async def get_upload(fname: str):

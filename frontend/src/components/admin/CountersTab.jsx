@@ -3,6 +3,7 @@ import { Plus, Save, Trash2, Edit3 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import ConfirmDialog from './ConfirmDialog';
+import { optimisticDelete } from '@/lib/optimisticDelete';
 
 const empty = { label: '', value: 0, suffix: '+', icon: 'star', order: 0 };
 
@@ -27,7 +28,7 @@ const CountersTab = () => {
   };
   const edit = (c) => { setEditing(c.id); setForm({ ...empty, ...c }); };
   const cancel = () => { setEditing(null); setForm(empty); };
-  const del = async () => { await api.delete(`/admin/counters/${confirm}`); setConfirm(null); toast.success('Deleted'); load(); };
+  const del = async () => { const id = confirm; setConfirm(null); await optimisticDelete({ id, url: `/admin/counters/${id}`, items, setItems }); };
 
   return (
     <div className="space-y-6" data-testid="counters-tab">

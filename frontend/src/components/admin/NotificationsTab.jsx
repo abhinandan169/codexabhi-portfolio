@@ -3,6 +3,7 @@ import { Bell, Check, Trash2, CheckCheck } from 'lucide-react';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import ConfirmDialog from './ConfirmDialog';
+import { optimisticDeletePaginated } from '@/lib/optimisticDelete';
 
 const NotificationsTab = () => {
   const [data, setData] = useState({ items: [], total: 0, unread: 0 });
@@ -17,7 +18,19 @@ const NotificationsTab = () => {
 
   const markRead = async (id) => { await api.put(`/admin/notifications/${id}/read`); load(); };
   const markAll = async () => { await api.put('/admin/notifications/read-all'); toast.success('All marked read'); load(); };
-  const del = async () => { await api.delete(`/admin/notifications/${confirm}`); setConfirm(null); load(); };
+  const del = async () => {
+    const id = confirm; setConfirm(null);
+    const wasUnread = !!data.items.find((n) => n.id === id && !n.read);
+    const snapshot = data;
+    setData({
+      ...data,
+      items: data.items.filter((n) => n.id !== id),
+      total: Math.max(0, (data.total || 0) - 1),
+      unread: Math.max(0, (data.unread || 0) - (wasUnread ? 1 : 0)),
+    });
+    try { await api.delete(`/admin/notifications/${id}`); }
+    catch { setData(snapshot); toast.error('Delete failed'); }
+  };
   const clearAll = async () => { await api.delete('/admin/notifications'); setConfirmClear(false); toast.success('Cleared'); load(); };
 
   return (

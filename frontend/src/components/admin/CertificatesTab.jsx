@@ -6,6 +6,7 @@ import ConfirmDialog from './ConfirmDialog';
 import FileUpload from './FileUpload';
 import { StatusPill, AutoSaveStatus } from './StatusPill';
 import { useAutoSave } from '@/lib/useAutoSave';
+import { optimisticDelete } from '@/lib/optimisticDelete';
 
 const empty = { name: '', organization: '', date: '', image: '', credential_link: '', order: 0, status: 'published' };
 
@@ -42,7 +43,7 @@ const CertificatesTab = () => {
   };
   const edit = (c) => { setEditing(c.id); setForm({ ...empty, ...c }); };
   const cancel = () => { setEditing(null); setForm(empty); };
-  const del = async () => { await api.delete(`/admin/certificates/${confirm}`); setConfirm(null); toast.success('Deleted'); load(); };
+  const del = async () => { const id = confirm; setConfirm(null); await optimisticDelete({ id, url: `/admin/certificates/${id}`, items, setItems }); };
 
   const filtered = items.filter((i) => i.name.toLowerCase().includes(q.toLowerCase()));
 

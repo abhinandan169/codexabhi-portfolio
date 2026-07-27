@@ -60,50 +60,17 @@ const Resume = ({ resume }) => {
           </div>
           <div className="flex justify-center md:justify-end">
             <div
-              className="w-56 h-72 rounded-2xl border border-[#E5E7EB] shadow-lg overflow-hidden bg-white"
+              className="w-56 h-72 rounded-xl border border-[#E5E7EB] shadow-xl overflow-hidden bg-white ring-1 ring-black/5"
               data-testid="resume-preview"
-              aria-label="Resume preview mock"
+              aria-label="Sample resume preview"
             >
-              {/* Realistic fake resume mock (placeholder — not real content) */}
-              <svg viewBox="0 0 224 288" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" role="img">
-                <rect width="224" height="288" fill="#ffffff" />
-                {/* Header band */}
-                <rect x="0" y="0" width="224" height="60" fill="#111111" />
-                <circle cx="30" cy="30" r="16" fill="#ffffff" opacity="0.15" />
-                <circle cx="30" cy="30" r="12" fill="#E53935" />
-                <rect x="56" y="20" width="120" height="8" rx="2" fill="#ffffff" />
-                <rect x="56" y="34" width="90" height="5" rx="2" fill="#ffffff" opacity="0.65" />
-
-                {/* Section: Summary */}
-                <rect x="16" y="76" width="40" height="6" rx="2" fill="#E53935" />
-                <rect x="16" y="90" width="192" height="4" rx="2" fill="#E5E7EB" />
-                <rect x="16" y="100" width="184" height="4" rx="2" fill="#E5E7EB" />
-                <rect x="16" y="110" width="150" height="4" rx="2" fill="#E5E7EB" />
-
-                {/* Section: Experience */}
-                <rect x="16" y="130" width="60" height="6" rx="2" fill="#E53935" />
-                <rect x="16" y="144" width="120" height="5" rx="2" fill="#111111" />
-                <rect x="16" y="154" width="80" height="4" rx="2" fill="#9CA3AF" />
-                <rect x="16" y="164" width="192" height="3" rx="1.5" fill="#E5E7EB" />
-                <rect x="16" y="171" width="192" height="3" rx="1.5" fill="#E5E7EB" />
-                <rect x="16" y="178" width="140" height="3" rx="1.5" fill="#E5E7EB" />
-
-                {/* Second experience entry */}
-                <rect x="16" y="192" width="110" height="5" rx="2" fill="#111111" />
-                <rect x="16" y="202" width="70" height="4" rx="2" fill="#9CA3AF" />
-                <rect x="16" y="212" width="192" height="3" rx="1.5" fill="#E5E7EB" />
-                <rect x="16" y="219" width="160" height="3" rx="1.5" fill="#E5E7EB" />
-
-                {/* Section: Skills chips */}
-                <rect x="16" y="238" width="40" height="6" rx="2" fill="#E53935" />
-                <rect x="16" y="252" width="34" height="10" rx="5" fill="#FFEBEE" />
-                <rect x="54" y="252" width="42" height="10" rx="5" fill="#FFEBEE" />
-                <rect x="100" y="252" width="30" height="10" rx="5" fill="#FFEBEE" />
-                <rect x="134" y="252" width="48" height="10" rx="5" fill="#FFEBEE" />
-
-                {/* Footer strip */}
-                <rect x="0" y="278" width="224" height="10" fill="#FAFAFA" />
-              </svg>
+              <img
+                src="/assets/sample-resume.png"
+                alt="Sample resume preview"
+                loading="lazy"
+                className="w-full h-full object-contain block transform scale-[1.09]"
+                style={{ imageRendering: '-webkit-optimize-contrast' }}
+              />
             </div>
           </div>
         </div>

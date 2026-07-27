@@ -6,6 +6,7 @@ import ConfirmDialog from './ConfirmDialog';
 import FileUpload from './FileUpload';
 import { StatusPill, AutoSaveStatus } from './StatusPill';
 import { useAutoSave } from '@/lib/useAutoSave';
+import { optimisticDelete } from '@/lib/optimisticDelete';
 
 const empty = { company: '', role: '', employment_type: 'Full-time', location: '', start_date: '', end_date: '', currently_working: false, description: '', technologies: [], company_logo: '', order: 0, featured: false, status: 'published' };
 
@@ -43,7 +44,7 @@ const ExperienceTab = () => {
   };
   const edit = (x) => { setEditing(x.id); setForm({ ...empty, ...x }); setTechStr((x.technologies || []).join(', ')); };
   const cancel = () => { setEditing(null); setForm(empty); setTechStr(''); };
-  const del = async () => { await api.delete(`/admin/experience/${confirm}`); setConfirm(null); toast.success('Deleted'); load(); };
+  const del = async () => { const id = confirm; setConfirm(null); await optimisticDelete({ id, url: `/admin/experience/${id}`, items, setItems }); };
 
   return (
     <div className="space-y-6" data-testid="experience-tab">

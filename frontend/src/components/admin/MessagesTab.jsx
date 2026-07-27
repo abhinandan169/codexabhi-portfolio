@@ -3,6 +3,7 @@ import { Trash2, Search, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import ConfirmDialog from './ConfirmDialog';
+import { optimisticDeletePaginated } from '@/lib/optimisticDelete';
 
 const MessagesTab = () => {
   const [data, setData] = useState({ items: [], total: 0, page: 1, page_size: 10 });
@@ -16,7 +17,7 @@ const MessagesTab = () => {
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [page, q]);
 
-  const del = async () => { await api.delete(`/admin/messages/${confirm}`); setConfirm(null); toast.success('Deleted'); load(); };
+  const del = async () => { const id = confirm; setConfirm(null); await optimisticDeletePaginated({ id, url: `/admin/messages/${id}`, data, setData }); };
   const markRead = async (id) => { await api.put(`/admin/messages/${id}/read`); load(); };
 
   const totalPages = Math.max(1, Math.ceil(data.total / data.page_size));

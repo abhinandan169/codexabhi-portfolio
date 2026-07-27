@@ -17,6 +17,20 @@ Hero (typing animation, 5 CTAs), About, Skills (animated bars), Projects (featur
 ### Session 2 (2026-07-10) — Extended Admin v1
 Overview tab (stat cards + recent activity), Appearance (theme customizer with 6 presets + light/dark), Settings (email/password w/ token invalidation), Backup & Restore (JSON), Activity Log (audit trail). Global CSS-variable-driven theming.
 
+### Session 14 (2026-07-26) — Portfolio Load Performance
+- **Full-page spinner removed** — the old blocking `if (loading) return <spinner>` gated first paint on the slowest of 12 API calls. Now `portfolio-root` paints ~890ms after JS commit.
+- **Two-stage fetch**: Stage 1 fires `profile + sections + seo` in parallel (needed for header/SEO). Stage 2 fires the 9 list APIs each independently, writing their own slice as they resolve — sections progressively hydrate.
+- **Skeletons**: new `SectionSkeleton.jsx` (kinds: hero/stack/grid-3/grid-4/timeline). Each section shows a matching skeleton while its data is `null`; replaced when the data lands. No layout shift (CLS 0.003).
+- **Code-splitting via React.lazy + Suspense**: CustomCursor, LiveInfo, CodingProfiles, FloatingButtons, Journey, TechStack, GitHubActivity are now separate chunks — 7 lazy bundles instead of one monolith. Initial JS bundle materially smaller.
+- Verified: iteration_17.json — 100% pass, 12 APIs parallel within 3ms, hero visible in 3.2s desktop / 1.7s mobile, zero console errors, no mobile overflow, admin dashboard unaffected. Minor: skeletons now also cover the API-load window for the 4 lazy list-gated sections (two-tier fallback).
+
+### Session 13 (2026-07-23) — Optimistic Delete Across Admin Panel
+- Delete actions in every admin tab used to await the DELETE then call `load()` (full refetch), making them feel sluggish.
+- New shared helper `/app/frontend/src/lib/optimisticDelete.js` — `optimisticDelete` (flat list) and `optimisticDeletePaginated` ({items,total,…}). Snapshot → optimistic remove → api.delete → rollback + toast on failure.
+- Rewired 11 tabs' delete handlers: Skills, Projects, Certificates, Education, Experience, Testimonials, Social, Counters, Media, Messages, Notifications. Media/Notifications use inline variants because they also decrement `total_size` / `count` / `unread`.
+- ConfirmDialog, delete-button JSX, styling, backend endpoints — untouched.
+- Tested: iteration_16.json — median row removal <25ms after clicking Confirm; rollback verified via forced 500 (row reappears + 'Delete failed' toast); portfolio reflects deletion; zero console errors.
+
 ### Session 12 (2026-07-22) — Social Links Mobile Responsiveness
 - Applied the same responsive-table pattern to `SocialTab.jsx`: table wrapped in `<div className='overflow-x-auto'>` with `min-w-[520px]`; Platform + Actions cells use `whitespace-nowrap`; URL cell uses `max-w-[220px] sm:max-w-md truncate` so long URLs ellipsize instead of pushing action buttons off-screen.
 - Verified: iteration_15.json — frontend 100%, no page-level overflow, edit/delete buttons reachable via inner scroll, add/edit form usable on 390px, desktop layout unchanged, 15-tab regression clean.

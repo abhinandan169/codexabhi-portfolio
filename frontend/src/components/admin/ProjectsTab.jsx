@@ -6,6 +6,7 @@ import ConfirmDialog from './ConfirmDialog';
 import FileUpload from './FileUpload';
 import { StatusPill, AutoSaveStatus } from './StatusPill';
 import { useAutoSave } from '@/lib/useAutoSave';
+import { optimisticDelete } from '@/lib/optimisticDelete';
 
 const CATEGORIES = ['All', 'Python', 'Java', 'C++', 'React', 'Next.js', 'Frontend', 'Backend', 'Full Stack', 'AI', 'Machine Learning', 'Data Science', 'Database', 'API', 'Mobile', 'Other'];
 
@@ -55,7 +56,7 @@ const ProjectsTab = () => {
   const edit = (p) => { setEditing(p.id); setForm({ ...empty, ...p }); setTechInput((p.technologies || []).join(', ')); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const cancel = () => { setEditing(null); setForm(empty); setTechInput(''); };
 
-  const del = async () => { await api.delete(`/admin/projects/${confirm}`); toast.success('Deleted'); setConfirm(null); load(); };
+  const del = async () => { const id = confirm; setConfirm(null); await optimisticDelete({ id, url: `/admin/projects/${id}`, items, setItems }); };
 
   const bulkDelete = async () => {
     try {
