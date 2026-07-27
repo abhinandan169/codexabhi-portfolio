@@ -27,4 +27,4 @@ resend==2.34.0
 
 stripe==14.4.1
 
-cloudinary
+cloudinary==1.44.1

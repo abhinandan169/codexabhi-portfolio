@@ -18,8 +18,19 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 import aiofiles
 
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+    secure=True,
+)
 
 # MongoDB
 mongo_url = os.environ['MONGO_URL']
@@ -909,24 +920,33 @@ async def restore_backup(body: RestoreRequest, _=Depends(verify_token)):
 # ------------------ File Upload ------------------
 @api_router.post("/admin/upload")
 async def upload_file(file: UploadFile = File(...), _=Depends(verify_token)):
-    ext = Path(file.filename).suffix
-    fname = f"{uuid.uuid4().hex}{ext}"
-    fpath = UPLOAD_DIR / fname
-    async with aiofiles.open(fpath, 'wb') as f:
-        content = await file.read()
-        await f.write(content)
-    # Record in media library
-    await db.media.insert_one({
-        "id": str(uuid.uuid4()),
-        "filename": file.filename,
-        "stored_name": fname,
-        "url": f"/api/uploads/{fname}",
-        "size": len(content),
-        "content_type": file.content_type or "",
-        "created_at": now_iso(),
-    })
-    # Return API-served URL (relative). Frontend will prefix REACT_APP_BACKEND_URL.
-    return {"url": f"/api/uploads/{fname}", "filename": file.filename}
+    try:
+        result = cloudinary.uploader.upload(
+            file.file,
+            folder="codexabhi-portfolio",
+            resource_type="auto"
+        )
+
+        media_doc = {
+            "id": str(uuid.uuid4()),
+            "filename": file.filename,
+            "stored_name": result["public_id"],
+            "url": result["secure_url"],
+            "public_id": result["public_id"],
+            "size": result.get("bytes", 0),
+            "content_type": file.content_type or "",
+            "created_at": now_iso(),
+        }
+
+        await db.media.insert_one(media_doc)
+
+        return {
+            "url": result["secure_url"],
+            "filename": file.filename
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/uploads/{fname}")
 async def get_upload(fname: str):
@@ -951,25 +971,30 @@ async def list_media(_=Depends(verify_token), q: Optional[str] = None):
 @api_router.delete("/admin/media/{mid}")
 async def delete_media(mid: str, _=Depends(verify_token)):
     m = await db.media.find_one({"id": mid})
+
     if not m:
         raise HTTPException(404, "Not found")
-    # Delete file
-    fpath = UPLOAD_DIR / m.get("stored_name", "")
-    if fpath.exists():
+
+    # Delete from Cloudinary
+    public_id = m.get("public_id")
+
+    if public_id:
         try:
-            fpath.unlink()
-        except Exception:
-            pass
+            resource_type = "image"
+
+            if m.get("content_type", "").startswith("application/pdf"):
+                resource_type = "raw"
+
+            cloudinary.uploader.destroy(
+                public_id,
+                resource_type=resource_type
+            )
+
+        except Exception as e:
+            print("Cloudinary delete error:", e)
+
     await db.media.delete_one({"id": mid})
     await log_activity("Media Deleted", "media", m.get("filename", ""))
-    return {"ok": True}
-
-@api_router.put("/admin/media/{mid}")
-async def rename_media(mid: str, body: dict, _=Depends(verify_token)):
-    new_name = body.get("filename", "").strip()
-    if not new_name:
-        raise HTTPException(400, "Filename required")
-    await db.media.update_one({"id": mid}, {"$set": {"filename": new_name}})
     return {"ok": True}
 
 # ------------------ SEO ------------------
