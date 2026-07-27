@@ -266,7 +266,7 @@ async def seed_defaults():
             email="abhinandan@example.com",
             phone="+91 90000 00000",
             location="India",
-            profile_image="https://images.unsplash.com/photo-1770058428099-f2d64ab34006?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBzb2Z0d2FyZSUyMGVuZ2luZWVyJTIwcG9ydHJhaXQlMjBzdHVkaW8lMjBsaWdodHxlbnwwfHx8fDE3ODM1MDk2MjV8MA&ixlib=rb-4.1.0&q=85",
+            profile_image="",
             typing_texts=["Software Engineer", "Python Developer", "Backend Engineer", "Problem Solver", "DSA Enthusiast"],
         )
         await db.profile.insert_one(p.model_dump())
@@ -1528,7 +1528,7 @@ logger = logging.getLogger(__name__)
 @app.on_event("startup")
 async def startup():
     await seed_admin()
-    await seed_defaults()
+    # await seed_defaults()
     logger.info("Startup complete")
 
 @app.on_event("shutdown")
