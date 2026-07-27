@@ -924,7 +924,8 @@ async def upload_file(file: UploadFile = File(...), _=Depends(verify_token)):
         result = cloudinary.uploader.upload(
             file.file,
             folder="codexabhi-portfolio",
-            resource_type="auto"
+            resource_type="auto",
+            type="upload",
         )
 
         media_doc = {
@@ -1528,9 +1529,12 @@ logger = logging.getLogger(__name__)
 @app.on_event("startup")
 async def startup():
     await seed_admin()
-    # await seed_defaults()
+    profile = await db.profile.find_one({"id": "main"})
+    if not profile:
+        await seed_defaults()
     logger.info("Startup complete")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
