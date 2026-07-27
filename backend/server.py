@@ -1541,3 +1541,12 @@ async def startup():
 async def shutdown_db_client():
     client.close()
 
+
+@api_router.get("/debug/experience-check")
+async def debug_experience_check():
+    docs = await db.experience.find({}, {"_id": 0}).to_list(100)
+    return {
+        "count": len(docs),
+        "roles": [d.get("role") for d in docs],
+        "checked_at": now_iso(),
+    }
