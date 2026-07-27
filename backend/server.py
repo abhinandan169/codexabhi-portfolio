@@ -922,11 +922,14 @@ async def restore_backup(body: RestoreRequest, _=Depends(verify_token)):
 async def upload_file(file: UploadFile = File(...), _=Depends(verify_token)):
     try:
         result = cloudinary.uploader.upload(
-            file.file,
-            folder="codexabhi-portfolio",
-            resource_type="auto",
-            type="upload",
-        )
+        file.file,
+        folder="codexabhi-portfolio",
+        public_id="abhinandan_kumar_resume",
+        overwrite=True,
+        invalidate=True,
+        resource_type="auto",
+        type="upload",
+    )
 
         media_doc = {
             "id": str(uuid.uuid4()),
