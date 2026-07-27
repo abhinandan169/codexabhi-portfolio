@@ -25,7 +25,7 @@ const ResumeTab = () => {
       <div className="card-soft p-6 space-y-4">
         <FileUpload
           value={r.file_url}
-          onChange={(v) => setR({ ...r, file_url: v, file_name: v ? v.split('/').pop() : '' })}
+          onChange={(v) => setR({ ...r, file_url: v, file_name: r.file_name || "Abhinandan_Kumar_Resume.pdf",})}
           label="Resume PDF"
           accept="application/pdf"
           testId="resume-upload"
