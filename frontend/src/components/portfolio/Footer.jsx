@@ -32,8 +32,13 @@ const Footer = ({ profile, social }) => (
             {social?.map((s) => {
               const meta = getSocialMeta(s.platform);
               const Ico = meta.icon;
+              const isEmail = meta.label === 'Email';
+              const emailAddr = isEmail ? String(s.url || '').replace(/^mailto:/i, '').trim() : '';
+              const href = isEmail && emailAddr
+                ? `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(emailAddr)}`
+                : s.url;
               return (
-                <a key={s.id} href={s.url} target="_blank" rel="noreferrer" title={meta.label || s.platform}
+                <a key={s.id} href={href} target="_blank" rel="noreferrer" title={meta.label || s.platform}
                   className="w-10 h-10 rounded-xl bg-white/5 hover:bg-[#E53935] flex items-center justify-center transition-colors"
                   data-testid={`footer-social-${s.platform}`}>
                   <Ico size={16} className="text-white" />

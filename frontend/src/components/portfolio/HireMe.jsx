@@ -25,7 +25,14 @@ const HireMe = ({ profile }) => (
               <Briefcase size={16} /> Get in touch <ArrowRight size={16} />
             </a>
             {profile?.email && (
-              <a href={`mailto:${profile.email}`} className="btn-secondary" style={{ backgroundColor: 'transparent', color: 'white', borderColor: 'rgba(255,255,255,0.25)' }} data-testid="hireme-email-btn">
+              <a
+                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(profile.email)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary"
+                style={{ backgroundColor: 'transparent', color: 'white', borderColor: 'rgba(255,255,255,0.25)' }}
+                data-testid="hireme-email-btn"
+              >
                 Email Me
               </a>
             )}
