@@ -253,106 +253,143 @@ async def log_activity(action: str, entity: str = "", details: str = ""):
         "created_at": now_iso(),
     })
 
+async def has_seed_flag(name: str) -> bool:
+    return await db.system_flags.find_one({"_id": f"seed:{name}"}) is not None
+
+async def mark_seed_flag(name: str) -> None:
+    await db.system_flags.update_one(
+        {"_id": f"seed:{name}"},
+        {"$set": {"_id": f"seed:{name}", "at": now_iso()}},
+        upsert=True,
+    )
+
 async def seed_defaults():
+     # ------------------------------------------------------------------
+    # Migration for existing installations that were seeded before the
+    # seed-flag mechanism was introduced. If a profile already exists,
+    # the DB was demonstrably seeded at some point, so we mark ALL seed
+    # flags as done. This guarantees that admins who deleted sample data
+    # (e.g. the two default Experience records "Software Engineer" and
+    # "Backend Lead") never see them re-appear on cold-starts / deploys.
+    # ------------------------------------------------------------------
+    if await db.profile.find_one({"id": "main"}):
+        for _name in ("profile", "skills", "projects", "certificates",
+                      "education", "social", "counters", "testimonials",
+                      "experience"):
+            if not await has_seed_flag(_name):
+                await mark_seed_flag(_name)
     # Profile
-    if not await db.profile.find_one({"id": "main"}):
-        p = Profile(
-            id="main",
-            name="Abhinandan Kumar",
-            title="Software Engineer",
-            tagline="Turning ideas into elegant, scalable software.",
-            intro="I'm a passionate Software Engineer specializing in Python, SQL, DSA, and OOP. I build robust backend systems and modern web applications with a focus on clean architecture and performance.",
-            about="I'm a Software Engineer with a strong foundation in computer science fundamentals — Data Structures, Algorithms, Object-Oriented Programming, and Databases. I love solving complex problems, designing scalable systems, and crafting delightful user experiences. My work spans backend engineering, API design, and full-stack development. I'm always learning, always shipping.",
-            email="abhinandan@example.com",
-            phone="+91 90000 00000",
-            location="India",
-            profile_image="",
-            typing_texts=["Software Engineer", "Python Developer", "Backend Engineer", "Problem Solver", "DSA Enthusiast"],
-        )
-        await db.profile.insert_one(p.model_dump())
+    if not await has_seed_flag("profile"):
+        if not await db.profile.find_one({"id": "main"}):
+            p = Profile(
+                id="main",
+                name="Abhinandan Kumar",
+                title="Software Engineer",
+                tagline="Turning ideas into elegant, scalable software.",
+                intro="I'm a passionate Software Engineer specializing in Python, SQL, DSA, and OOP. I build robust backend systems and modern web applications with a focus on clean architecture and performance.",
+                about="I'm a Software Engineer with a strong foundation in computer science fundamentals — Data Structures, Algorithms, Object-Oriented Programming, and Databases. I love solving complex problems, designing scalable systems, and crafting delightful user experiences. My work spans backend engineering, API design, and full-stack development. I'm always learning, always shipping.",
+                email="abhinandan@example.com",
+                phone="+91 90000 00000",
+                location="India",
+                profile_image="",
+                typing_texts=["Software Engineer", "Python Developer", "Backend Engineer", "Problem Solver", "DSA Enthusiast"],
+            )
+            await db.profile.insert_one(p.model_dump())
+        await mark_seed_flag("profile")    
 
     # Skills
-    if await db.skills.count_documents({}) == 0:
-        defaults = [
-            {"name": "Python", "level": 92, "category": "Language", "order": 1},
-            {"name": "SQL", "level": 88, "category": "Database", "order": 2},
-            {"name": "DSA", "level": 85, "category": "Core CS", "order": 3},
-            {"name": "OOPs", "level": 90, "category": "Core CS", "order": 4},
-        ]
-        for s in defaults:
-            await db.skills.insert_one(Skill(**s).model_dump())
+    if not await has_seed_flag("skills"):
+        if await db.skills.count_documents({}) == 0:
+            defaults = [
+                {"name": "Python", "level": 92, "category": "Language", "order": 1},
+                {"name": "SQL", "level": 88, "category": "Database", "order": 2},
+                {"name": "DSA", "level": 85, "category": "Core CS", "order": 3},
+                {"name": "OOPs", "level": 90, "category": "Core CS", "order": 4},
+            ]
+            for s in defaults:
+                await db.skills.insert_one(Skill(**s).model_dump())
+        await mark_seed_flag("skills")        
+
 
     # Projects
-    if await db.projects.count_documents({}) == 0:
-        samples = [
-            {
-                "title": "Portfolio Platform",
-                "description": "A modern, admin-managed portfolio built with React and FastAPI featuring animated skills, CRUD dashboard, and file uploads.",
-                "technologies": ["React", "FastAPI", "MongoDB", "TailwindCSS"],
-                "github_link": "https://github.com/abhinandan",
-                "live_demo": "",
-                "cover_image": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBjbGVhbiUyMGRhc2hib2FyZCUyMHNvZnR3YXJlJTIwd2ViJTIwYXBwJTIwaW50ZXJmYWNlfGVufDB8fHx8MTc4MzUwOTYyNXww&ixlib=rb-4.1.0&q=85",
-                "screenshots": [],
-                "featured": True,
-                "order": 1,
-            },
-            {
-                "title": "Analytics Dashboard",
-                "description": "Real-time analytics dashboard with beautiful charts and role-based access control.",
-                "technologies": ["Python", "SQL", "React", "Recharts"],
-                "github_link": "https://github.com/abhinandan",
-                "live_demo": "",
-                "cover_image": "https://images.unsplash.com/photo-1686061592689-312bbfb5c055?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwzfHxtb2Rlcm4lMjBjbGVhbiUyMGRhc2hib2FyZCUyMHNvZnR3YXJlJTIwd2ViJTIwYXBwJTIwaW50ZXJmYWNlfGVufDB8fHx8MTc4MzUwOTYyNXww&ixlib=rb-4.1.0&q=85",
-                "screenshots": [],
-                "featured": False,
-                "order": 2,
-            },
-            {
-                "title": "Algorithm Visualizer",
-                "description": "Interactive tool to visualize sorting, graph, and pathfinding algorithms in real-time.",
-                "technologies": ["JavaScript", "DSA", "Canvas"],
-                "github_link": "https://github.com/abhinandan",
-                "live_demo": "",
-                "cover_image": "",
-                "screenshots": [],
-                "featured": False,
-                "order": 3,
-            },
-        ]
-        for s in samples:
-            await db.projects.insert_one(Project(**s).model_dump())
+    if not await has_seed_flag("projects"):
+        if await db.projects.count_documents({}) == 0:
+            samples = [
+                {
+                    "title": "Portfolio Platform",
+                    "description": "A modern, admin-managed portfolio built with React and FastAPI featuring animated skills, CRUD dashboard, and file uploads.",
+                    "technologies": ["React", "FastAPI", "MongoDB", "TailwindCSS"],
+                    "github_link": "https://github.com/abhinandan",
+                    "live_demo": "",
+                    "cover_image": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBjbGVhbiUyMGRhc2hib2FyZCUyMHNvZnR3YXJlJTIwd2ViJTIwYXBwJTIwaW50ZXJmYWNlfGVufDB8fHx8MTc4MzUwOTYyNXww&ixlib=rb-4.1.0&q=85",
+                    "screenshots": [],
+                    "featured": True,
+                    "order": 1,
+                },
+                {
+                    "title": "Analytics Dashboard",
+                    "description": "Real-time analytics dashboard with beautiful charts and role-based access control.",
+                    "technologies": ["Python", "SQL", "React", "Recharts"],
+                    "github_link": "https://github.com/abhinandan",
+                    "live_demo": "",
+                    "cover_image": "https://images.unsplash.com/photo-1686061592689-312bbfb5c055?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwzfHxtb2Rlcm4lMjBjbGVhbiUyMGRhc2hib2FyZCUyMHNvZnR3YXJlJTIwd2ViJTIwYXBwJTIwaW50ZXJmYWNlfGVufDB8fHx8MTc4MzUwOTYyNXww&ixlib=rb-4.1.0&q=85",
+                    "screenshots": [],
+                    "featured": False,
+                    "order": 2,
+                },
+                {
+                    "title": "Algorithm Visualizer",
+                    "description": "Interactive tool to visualize sorting, graph, and pathfinding algorithms in real-time.",
+                    "technologies": ["JavaScript", "DSA", "Canvas"],
+                    "github_link": "https://github.com/abhinandan",
+                    "live_demo": "",
+                    "cover_image": "",
+                    "screenshots": [],
+                    "featured": False,
+                    "order": 3,
+                },
+            ]
+            for s in samples:
+                await db.projects.insert_one(Project(**s).model_dump())
+        await mark_seed_flag("projects")
 
     # Certificates
-    if await db.certificates.count_documents({}) == 0:
-        samples = [
-            {"name": "Python for Everybody", "organization": "Coursera", "date": "2024", "credential_link": "https://coursera.org", "order": 1},
-            {"name": "SQL Advanced", "organization": "HackerRank", "date": "2024", "credential_link": "https://hackerrank.com", "order": 2},
-            {"name": "Data Structures & Algorithms", "organization": "GeeksforGeeks", "date": "2023", "credential_link": "https://geeksforgeeks.org", "order": 3},
-        ]
-        for s in samples:
-            await db.certificates.insert_one(Certificate(**s).model_dump())
+    if not await has_seed_flag("certificates"):
+        if await db.certificates.count_documents({}) == 0:
+            samples = [
+                {"name": "Python for Everybody", "organization": "Coursera", "date": "2024", "credential_link": "https://coursera.org", "order": 1},
+                {"name": "SQL Advanced", "organization": "HackerRank", "date": "2024", "credential_link": "https://hackerrank.com", "order": 2},
+                {"name": "Data Structures & Algorithms", "organization": "GeeksforGeeks", "date": "2023", "credential_link": "https://geeksforgeeks.org", "order": 3},
+            ]
+            for s in samples:
+                await db.certificates.insert_one(Certificate(**s).model_dump())
+        await mark_seed_flag("certificates")
 
     # Education
-    if await db.education.count_documents({}) == 0:
-        samples = [
-            {"degree": "B.Tech in Computer Science", "college": "Your Engineering College", "university": "Your University", "cgpa": "8.5", "passing_year": "2024", "order": 1},
-            {"degree": "12th (Science)", "college": "Your Senior Secondary School", "university": "CBSE", "cgpa": "90%", "passing_year": "2020", "order": 2},
-        ]
-        for s in samples:
-            await db.education.insert_one(Education(**s).model_dump())
+    if not await has_seed_flag("education"):
+        if await db.education.count_documents({}) == 0:
+            samples = [
+                {"degree": "B.Tech in Computer Science", "college": "Your Engineering College", "university": "Your University", "cgpa": "8.5", "passing_year": "2024", "order": 1},
+                {"degree": "12th (Science)", "college": "Your Senior Secondary School", "university": "CBSE", "cgpa": "90%", "passing_year": "2020", "order": 2},
+            ]
+            for s in samples:
+                await db.education.insert_one(Education(**s).model_dump())
+        await mark_seed_flag("education")
 
     # Social Links
-    if await db.social_links.count_documents({}) == 0:
-        samples = [
-            {"platform": "github", "url": "https://github.com/abhinandan", "order": 1},
-            {"platform": "linkedin", "url": "https://linkedin.com/in/abhinandan", "order": 2},
-            {"platform": "twitter", "url": "https://twitter.com/abhinandan", "order": 3},
-            {"platform": "whatsapp", "url": "https://wa.me/919000000000", "order": 4},
-            {"platform": "email", "url": "mailto:abhinandan@example.com", "order": 5},
-            {"platform": "instagram", "url": "https://instagram.com/abhinandan", "order": 6},
-        ]
-        for s in samples:
-            await db.social_links.insert_one(SocialLink(**s).model_dump())
+    if not await has_seed_flag("social"):
+        if await db.social_links.count_documents({}) == 0:
+            samples = [
+                {"platform": "github", "url": "https://github.com/abhinandan", "order": 1},
+                {"platform": "linkedin", "url": "https://linkedin.com/in/abhinandan", "order": 2},
+                {"platform": "twitter", "url": "https://twitter.com/abhinandan", "order": 3},
+                {"platform": "whatsapp", "url": "https://wa.me/919000000000", "order": 4},
+                {"platform": "email", "url": "mailto:abhinandan@example.com", "order": 5},
+                {"platform": "instagram", "url": "https://instagram.com/abhinandan", "order": 6},
+            ]
+            for s in samples:
+                await db.social_links.insert_one(SocialLink(**s).model_dump())
+        await mark_seed_flag("social")
 
     # Resume placeholder
     if not await db.resume.find_one({"id": "resume-doc"}):
@@ -370,26 +407,49 @@ async def seed_defaults():
     if not await db.sections.find_one({"id": "site-sections"}):
         await db.sections.insert_one(DEFAULT_SECTIONS.copy())
 
-    # Counters defaults
-    if await db.counters.count_documents({}) == 0:
-        for c in DEFAULT_COUNTERS:
-            await db.counters.insert_one(c.copy())
+     # Counters defaults
+    if not await has_seed_flag("counters"):
+        if await db.counters.count_documents({}) == 0:
+            for c in DEFAULT_COUNTERS:
+                await db.counters.insert_one(c.copy())
+        await mark_seed_flag("counters")
 
     # Testimonials defaults
-    if await db.testimonials.count_documents({}) == 0:
-        samples = [
-            {"name": "Jane Doe", "company": "TechCorp", "role": "Engineering Manager", "rating": 5,
-             "review": "Abhinandan delivered clean, well-tested code on time. His grasp of DSA and system design impressed our whole team.",
-             "photo": "", "linkedin": "https://linkedin.com/in/jane", "order": 1, "featured": True},
-            {"name": "Rahul Verma", "company": "StartupX", "role": "CTO", "rating": 5,
-             "review": "One of the sharpest engineers I've worked with — great communicator and always focused on quality.",
-             "photo": "", "linkedin": "", "order": 2, "featured": True},
-            {"name": "Priya Sharma", "company": "DataLabs", "role": "Senior Engineer", "rating": 5,
-             "review": "Solid backend fundamentals, thoughtful reviews, and shipped features fast. Would hire again in a heartbeat.",
-             "photo": "", "linkedin": "", "order": 3, "featured": False},
-        ]
-        for s in samples:
-            await db.testimonials.insert_one(Testimonial(**s).model_dump())
+    if not await has_seed_flag("testimonials"):
+        if await db.testimonials.count_documents({}) == 0:
+            samples = [
+                {"name": "Jane Doe", "company": "TechCorp", "role": "Engineering Manager", "rating": 5,
+                 "review": "Abhinandan delivered clean, well-tested code on time. His grasp of DSA and system design impressed our whole team.",
+                 "photo": "", "linkedin": "https://linkedin.com/in/jane", "order": 1, "featured": True},
+                {"name": "Rahul Verma", "company": "StartupX", "role": "CTO", "rating": 5,
+                 "review": "One of the sharpest engineers I've worked with — great communicator and always focused on quality.",
+                 "photo": "", "linkedin": "", "order": 2, "featured": True},
+                {"name": "Priya Sharma", "company": "DataLabs", "role": "Senior Engineer", "rating": 5,
+                 "review": "Solid backend fundamentals, thoughtful reviews, and shipped features fast. Would hire again in a heartbeat.",
+                 "photo": "", "linkedin": "", "order": 3, "featured": False},
+            ]
+            for s in samples:
+                await db.testimonials.insert_one(Testimonial(**s).model_dump())
+        await mark_seed_flag("testimonials")    
+
+    # Experience defaults
+    if not await has_seed_flag("experience"):
+        if await db.experience.count_documents({}) == 0:
+            samples = [
+                {"company": "Freelance Projects", "role": "Software Engineer",
+                 "employment_type": "Freelance", "location": "Remote",
+                 "start_date": "2023", "end_date": "", "currently_working": True,
+                 "description": "Building web applications, APIs, and automation tools for early-stage founders and small teams.",
+                 "technologies": ["Python", "React", "FastAPI", "MongoDB"], "company_logo": "", "order": 1, "featured": True},
+                {"company": "College Coding Club", "role": "Backend Lead",
+                 "employment_type": "Volunteer", "location": "On-site",
+                 "start_date": "2022", "end_date": "2024", "currently_working": False,
+                 "description": "Led backend workshops, mentored juniors on DSA, and organized coding contests.",
+                 "technologies": ["Python", "SQL", "DSA"], "company_logo": "", "order": 2, "featured": False},
+            ]
+            for s in samples:
+                await db.experience.insert_one(Experience(**s).model_dump())
+        await mark_seed_flag("experience")
             
 def clean(doc):
     if doc is None:
@@ -944,10 +1004,7 @@ async def upload_file(file: UploadFile = File(...), _=Depends(verify_token)):
 
         await db.media.insert_one(media_doc)
 
-        return {
-            "url": result["secure_url"],
-            "filename": file.filename
-        }
+        return {"url": result["secure_url"], "filename": file.filename}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1532,9 +1589,9 @@ logger = logging.getLogger(__name__)
 @app.on_event("startup")
 async def startup():
     await seed_admin()
-    profile = await db.profile.find_one({"id": "main"})
-    if not profile:
-        await seed_defaults()
+    # profile = await db.profile.find_one({"id": "main"})
+    # if not profile:
+    #     await seed_defaults()
     logger.info("Startup complete")
 
 @app.on_event("shutdown")
