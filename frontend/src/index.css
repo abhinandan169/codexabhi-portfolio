@@ -255,22 +255,55 @@ input[type="radio"]:focus-visible {
 .section-y { padding-top: 6rem; padding-bottom: 6rem; }
 @media (min-width: 640px) { .section-y { padding-top: 8rem; padding-bottom: 8rem; } }
 
+/* ==========================================================
+   SECTION SPACING (ALL DEVICES)
+   Mobile + Tablet + Laptop + Desktop + MacBook
+   REPLACE START
+========================================================== */
+
 .section-y {
-  padding-top: 3.5rem;
-  padding-bottom: 3.5rem;
+  /* Mobile */
+  padding-top: 3rem;
+  padding-bottom: 3rem;
 }
 
+/* Small Tablet */
 @media (min-width: 640px) {
   .section-y {
-    padding-top: 4.5rem;
-    padding-bottom: 4.5rem;
+    padding-top: 3.25rem;
+    padding-bottom: 3.25rem;
   }
 }
 
+/* Tablet */
+@media (min-width: 768px) {
+  .section-y {
+    padding-top: 3.5rem;
+    padding-bottom: 3.5rem;
+  }
+}
+
+/* Laptop */
 @media (min-width: 1024px) {
   .section-y {
-    padding-top: 5rem;
-    padding-bottom: 5rem;
+    padding-top: 3.5rem;
+    padding-bottom: 3.5rem;
+  }
+}
+
+/* Desktop / MacBook */
+@media (min-width: 1280px) {
+  .section-y {
+    padding-top: 3.75rem;
+    padding-bottom: 3.75rem;
+  }
+}
+
+/* 2K / Large Desktop */
+@media (min-width: 1536px) {
+  .section-y {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
   }
 }
 
