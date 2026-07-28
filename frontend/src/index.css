@@ -255,6 +255,25 @@ input[type="radio"]:focus-visible {
 .section-y { padding-top: 6rem; padding-bottom: 6rem; }
 @media (min-width: 640px) { .section-y { padding-top: 8rem; padding-bottom: 8rem; } }
 
+.section-y {
+  padding-top: 3.5rem;
+  padding-bottom: 3.5rem;
+}
+
+@media (min-width: 640px) {
+  .section-y {
+    padding-top: 4.5rem;
+    padding-bottom: 4.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-y {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+  }
+}
+
 .btn-primary {
   display: inline-flex;
   align-items: center;
