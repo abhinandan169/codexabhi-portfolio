@@ -4,7 +4,7 @@ import { mediaUrl } from '@/lib/api';
 import { trackProject } from '@/lib/analytics';
 
 const ProjectCard = ({ p }) => (
-  <div className="card-soft overflow-hidden flex flex-col h-[560px]" data-testid={`project-card-${p.id}`}>
+  <div className="card-soft overflow-hidden flex flex-col h-full" data-testid={`project-card-${p.id}`}>
     <div className="aspect-video relative overflow-hidden" style={{ backgroundColor: 'var(--bg-alt)' }}>
       {p.cover_image ? (
         <img src={mediaUrl(p.cover_image)} alt={p.title} className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" />
@@ -22,9 +22,9 @@ const ProjectCard = ({ p }) => (
     </div>
     <div className="p-6 flex-1 flex flex-col">
       <h3 className="text-lg font-bold mb-2">{p.title}</h3>
-      <p className="text-sm leading-relaxed h-[110px] overflow-hidden" style={{ color: 'var(--text-secondary)'}}>{p.description}</p>
+      <p className="text-sm leading-relaxed flex-1" style={{ color: 'var(--text-secondary)'}}>{p.description}</p>
       {p.technologies?.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2 h-[72px] overflow-hidden content-start">
+        <div className="mt-4 flex flex-wrap gap-2">
           {p.technologies.map((t, i) => (
             <span key={i} className="text-xs px-2.5 py-1 border rounded-full mono" style={{ backgroundColor: 'var(--bg-alt)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>{t}</span>
           ))}
