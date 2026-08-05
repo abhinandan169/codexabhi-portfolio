@@ -80,7 +80,7 @@ const Hero = ({ profile, resume, social }) => {
             </span>
           </div>
 
-          <p className="mt-7 text-base sm:text-lg text-[#555555] leading-8 text-justify max-w-3xl" data-testid="hero-intro">
+          <p className="mt-7 text-base sm:text-lg text-[#555555] leading-8 max-w-3xl" data-testid="hero-intro">
             {profile?.intro || 'Passionate about building elegant software solutions.'}
           </p>
 
