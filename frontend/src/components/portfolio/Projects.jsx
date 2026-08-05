@@ -4,7 +4,7 @@ import { mediaUrl } from '@/lib/api';
 import { trackProject } from '@/lib/analytics';
 
 const ProjectCard = ({ p }) => (
-  <div className="card-soft overflow-hidden flex flex-col" data-testid={`project-card-${p.id}`}>
+  <div className="card-soft overflow-hidden flex flex-col h-[560px]" data-testid={`project-card-${p.id}`}>
     <div className="aspect-video relative overflow-hidden" style={{ backgroundColor: 'var(--bg-alt)' }}>
       {p.cover_image ? (
         <img src={mediaUrl(p.cover_image)} alt={p.title} className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" />
@@ -22,15 +22,15 @@ const ProjectCard = ({ p }) => (
     </div>
     <div className="p-6 flex-1 flex flex-col">
       <h3 className="text-lg font-bold mb-2">{p.title}</h3>
-      <p className="text-sm leading-relaxed flex-1" style={{ color: 'var(--text-secondary)' }}>{p.description}</p>
+      <p className="text-sm leading-relaxed h-[110px] overflow-hidden" style={{ color: 'var(--text-secondary)'}}>{p.description}</p>
       {p.technologies?.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap gap-2 h-[72px] overflow-hidden content-start">
           {p.technologies.map((t, i) => (
             <span key={i} className="text-xs px-2.5 py-1 border rounded-full mono" style={{ backgroundColor: 'var(--bg-alt)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>{t}</span>
           ))}
         </div>
       )}
-      <div className="mt-5 flex items-center gap-3 pt-4" style={{ borderTop: '1px solid var(--border-soft)' }}>
+      <div className="mt-auto flex items-center gap-3 pt-4" style={{ borderTop: '1px solid var(--border-soft)' }}>
         {p.github_link && (
           <a href={p.github_link} target="_blank" rel="noreferrer" onClick={() => trackProject(p.id)} className="transition-colors hover:opacity-70" style={{ color: 'var(--text-secondary)' }} data-testid={`project-github-${p.id}`}>
             <Github size={18} />
@@ -141,7 +141,7 @@ const Projects = ({ projects }) => {
           </div>
         )}
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="projects-grid">
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch" data-testid="projects-grid">
           {rest.map((p) => <ProjectCard key={p.id} p={p} />)}
           {filtered.length === 0 && <p className="col-span-full text-center" style={{ color: 'var(--text-muted)' }}>No projects in this category.</p>}
         </div>
