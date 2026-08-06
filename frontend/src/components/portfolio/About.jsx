@@ -11,17 +11,17 @@ const About = ({ profile }) => {
   return (
     <section id="about" className="section-y bg-[#FAFAFA]" data-testid="about-section">
       <div className="container-x grid grid-cols-1 lg:grid-cols-12 gap-12">
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-6">
           <span className="eyebrow">About Me</span>
           <h2 className="text-3xl sm:text-5xl font-bold mt-2">
             A little bit <span className="text-[#E53935]">about me.</span>
           </h2>
-          <p className="mt-6 text-lg text-[#555555] leading-8 max-w-[60ch]" data-testid="about-text">
+          <p className="mt-6 text-lg text-[#555555] leading-8 text-justify" data-testid="about-text">
             {profile?.about || 'I am a Software Engineer passionate about building scalable systems.'}
           </p>
         </div>
 
-        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
           {highlights.map((h, idx) => (
             <div key={idx} className="card-soft p-6" data-testid={`about-highlight-${idx}`}>
               <div className="w-11 h-11 rounded-xl bg-[#FFEBEE] flex items-center justify-center text-[#E53935] mb-4">
