@@ -16,7 +16,7 @@ const About = ({ profile }) => {
           <h2 className="text-3xl sm:text-5xl font-bold mt-2">
             A little bit <span className="text-[#E53935]">about me.</span>
           </h2>
-          <p className="mt-6 text-lg text-[#555555] leading-8 tracking-[0.01em] max-w-[68ch]" data-testid="about-text">
+          <p className="prose-body mt-6" data-testid="about-text">
             {profile?.about || 'I am a Software Engineer passionate about building scalable systems.'}
           </p>
         </div>

@@ -49,7 +49,7 @@ const Hero = ({ profile, resume, social }) => {
   };
 
   return (
-    <section id="home" className="relative pt-28 pb-12 sm:pt-36 sm:pb-16 overflow-hidden" data-testid="hero-section">
+    <section id="home" className="relative pt-28 pb-20 sm:pt-36 sm:pb-24 overflow-hidden" data-testid="hero-section">
       {/* Decorative background */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-20 -right-40 w-96 h-96 rounded-full bg-[#FFEBEE] blur-3xl opacity-60"></div>
@@ -57,7 +57,7 @@ const Hero = ({ profile, resume, social }) => {
       </div>
 
       <div className="container-x grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
-        <div className="lg:col-span-6 order-2 lg:order-1 fade-in-up">
+        <div className="lg:col-span-7 order-2 lg:order-1 fade-in-up">
           <span className="eyebrow" data-testid="hero-eyebrow">Welcome to my portfolio</span>
 
           <h1 className="text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-tight leading-[0.98] mt-3">
@@ -80,7 +80,7 @@ const Hero = ({ profile, resume, social }) => {
             </span>
           </div>
 
-          <p className="mt-7 text-base sm:text-lg text-[#555555] leading-8 tracking-[0.01em] max-w-[68ch]" data-testid="hero-intro">
+          <p className="prose-body mt-6" data-testid="hero-intro">
             {profile?.intro || 'Passionate about building elegant software solutions.'}
           </p>
 
@@ -111,7 +111,7 @@ const Hero = ({ profile, resume, social }) => {
           </div>
         </div>
 
-        <div className="lg:col-span-6 order-1 lg:order-2 flex justify-center lg:justify-end fade-in-up">
+        <div className="lg:col-span-5 order-1 lg:order-2 flex justify-center lg:justify-end fade-in-up">
           <div className="relative">
             {/* Outer glow rings */}
             <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#E53935] via-[#FF7A70] to-[#FFB8B0] blur-3xl opacity-40 animate-pulse-slow"></div>

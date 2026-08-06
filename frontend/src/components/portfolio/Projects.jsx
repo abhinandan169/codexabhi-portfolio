@@ -22,7 +22,7 @@ const ProjectCard = ({ p }) => (
     </div>
     <div className="p-6 flex-1 flex flex-col">
       <h3 className="text-lg font-bold mb-2">{p.title}</h3>
-      <p className="text-sm leading-relaxed flex-1" style={{ color: 'var(--text-secondary)'}}>{p.description}</p>
+      <p className="prose-card" style={{ color: 'var(--text-secondary)' }}>{p.description}</p>
       {p.technologies?.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
           {p.technologies.map((t, i) => (
