@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Milestone, GraduationCap, Briefcase, Rocket } from 'lucide-react';
+import { GraduationCap, Briefcase } from 'lucide-react';
 
 /**
  * Combines experience + education into a single reverse-chronological Journey timeline.
@@ -26,13 +26,31 @@ const Journey = ({ experience = [], education = [] }) => {
         subtitle: `${e.college || ''}${e.university ? ' · ' + e.university : ''}`,
         note: e.cgpa ? `CGPA: ${e.cgpa}` : '',
         year: e.passing_year,
-        sortKey: e.passing_year || '',
+        sortKey: e.passing_year === 'Present' ? '9999' : (e.passing_year || ''),
         kind: 'edu',
         icon: GraduationCap,
       });
     });
-    // Sort newest first (string year works for YYYY)
-    evs.sort((a, b) => String(b.sortKey).localeCompare(String(a.sortKey)));
+    // Sort: Present first, then latest completed date
+    events.sort((a, b) => {
+      const aPresent = a.sortKey === '9999';
+      const bPresent = b.sortKey === '9999';
+
+  if (aPresent && !bPresent) return -1;
+  if (!aPresent && bPresent) return 1;
+
+  const getDateValue = (value) => {
+    if (!value) return 0;
+
+    const parsed = Date.parse(String(value));
+    if (!Number.isNaN(parsed)) return parsed;
+
+    const year = String(value).match(/\d{4}/);
+    return year ? new Date(Number(year[0]), 0, 1).getTime() : 0;
+  };
+
+  return getDateValue(b.sortKey) - getDateValue(a.sortKey);
+});
     return evs;
   }, [experience, education]);
 
