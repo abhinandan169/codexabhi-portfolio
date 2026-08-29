@@ -1,60 +1,72 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { GraduationCap, Briefcase } from 'lucide-react';
 
-/**
- * Combines experience + education into a single reverse-chronological Journey timeline.
- */
 const Journey = ({ experience = [], education = [] }) => {
-  const events = useMemo(() => {
-    const evs = [];
-    experience.forEach((e) => {
-      evs.push({
-        id: `exp-${e.id}`,
-        title: e.role,
-        subtitle: e.company,
-        note: e.description,
-        year: e.currently_working ? e.start_date : (e.end_date || e.start_date),
-        sortKey: e.currently_working ? '9999' : (e.end_date || e.start_date || ''),
-        kind: 'work',
-        icon: Briefcase,
-      });
+  const expList = Array.isArray(experience) ? experience : [];
+  const eduList = Array.isArray(education) ? education : [];
+
+  const events = [];
+
+  expList.forEach((e) => {
+    events.push({
+      id: `exp-${e.id || Math.random()}`,
+      title: e.role || '',
+      subtitle: e.company || '',
+      note: e.description || '',
+      year: e.currently_working
+        ? e.start_date
+        : (e.end_date || e.start_date || ''),
+      sortKey: e.currently_working
+        ? '9999'
+        : (e.end_date || e.start_date || ''),
+      kind: 'work',
+      icon: Briefcase,
     });
-    education.forEach((e) => {
-      evs.push({
-        id: `edu-${e.id}`,
-        title: e.degree,
-        subtitle: `${e.college || ''}${e.university ? ' · ' + e.university : ''}`,
-        note: e.cgpa ? `CGPA: ${e.cgpa}` : '',
-        year: e.passing_year,
-        sortKey: e.passing_year === 'Present' ? '9999' : (e.passing_year || ''),
-        kind: 'edu',
-        icon: GraduationCap,
-      });
+  });
+
+  eduList.forEach((e) => {
+    events.push({
+      id: `edu-${e.id || Math.random()}`,
+      title: e.degree || '',
+      subtitle: `${e.college || ''}${e.university ? ` · ${e.university}` : ''}`,
+      note: e.cgpa ? `CGPA: ${e.cgpa}` : '',
+      year: e.passing_year || '',
+      sortKey: e.passing_year === 'Present'
+        ? '9999'
+        : (e.passing_year || ''),
+      kind: 'edu',
+      icon: GraduationCap,
     });
-    // Sort: Present first, then latest completed date
-    events.sort((a, b) => {
-      const aPresent = a.sortKey === '9999';
-      const bPresent = b.sortKey === '9999';
+  });
 
-  if (aPresent && !bPresent) return -1;
-  if (!aPresent && bPresent) return 1;
+  events.sort((a, b) => {
+    const aPresent = a.sortKey === '9999';
+    const bPresent = b.sortKey === '9999';
 
-  const getDateValue = (value) => {
-    if (!value) return 0;
+    if (aPresent && !bPresent) return -1;
+    if (!aPresent && bPresent) return 1;
 
-    const parsed = Date.parse(String(value));
-    if (!Number.isNaN(parsed)) return parsed;
+    const getDateValue = (value) => {
+      if (!value) return 0;
 
-    const year = String(value).match(/\d{4}/);
-    return year ? new Date(Number(year[0]), 0, 1).getTime() : 0;
-  };
+      const parsed = Date.parse(String(value));
 
-  return getDateValue(b.sortKey) - getDateValue(a.sortKey);
-});
-    return evs;
-  }, [experience, education]);
+      if (!Number.isNaN(parsed)) {
+        return parsed;
+      }
+
+      const match = String(value).match(/\d{4}/);
+
+      return match
+        ? new Date(Number(match[0]), 0, 1).getTime()
+        : 0;
+    };
+
+    return getDateValue(b.sortKey) - getDateValue(a.sortKey);
+  });
 
   if (events.length === 0) return null;
+  
 
   return (
     <section className="section-y" style={{ backgroundColor: 'var(--bg-alt)' }} data-testid="journey-section">
